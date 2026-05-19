@@ -22,7 +22,6 @@ import consulo.content.library.Library;
 import consulo.module.content.layer.orderEntry.DependencyScope;
 import consulo.module.content.layer.orderEntry.LibraryDependencyScopeSuggester;
 import consulo.virtualFileSystem.VirtualFile;
-
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
@@ -30,43 +29,35 @@ import jakarta.annotation.Nullable;
  * @author nik
  */
 @ExtensionImpl
-public class JUnitDependencyScopeSuggester extends LibraryDependencyScopeSuggester
-{
-	private static final String[] JUNIT_JAR_MARKERS = {
-			"org.junit.Test",
-			"junit.framework.TestCase",
-			"org.hamcrest.Matcher",
-			"org.hamcrest.Matchers"
-	};
+public class JUnitDependencyScopeSuggester extends LibraryDependencyScopeSuggester {
+    private static final String[] JUNIT_JAR_MARKERS = {
+        "org.junit.Test",
+        "junit.framework.TestCase",
+        "org.hamcrest.Matcher",
+        "org.hamcrest.Matchers"
+    };
 
-	@Nullable
-	@Override
-	public DependencyScope getDefaultDependencyScope(@Nonnull Library library)
-	{
-		VirtualFile[] files = library.getFiles(BinariesOrderRootType.getInstance());
-		if(files.length == 0)
-		{
-			return null;
-		}
-		for(VirtualFile file : files)
-		{
-			if(!isTestJarRoot(file))
-			{
-				return null;
-			}
-		}
-		return DependencyScope.TEST;
-	}
+    @Nullable
+    @Override
+    public DependencyScope getDefaultDependencyScope(@Nonnull Library library) {
+        VirtualFile[] files = library.getFiles(BinariesOrderRootType.ID);
+        if (files.length == 0) {
+            return null;
+        }
+        for (VirtualFile file : files) {
+            if (!isTestJarRoot(file)) {
+                return null;
+            }
+        }
+        return DependencyScope.TEST;
+    }
 
-	private static boolean isTestJarRoot(VirtualFile file)
-	{
-		for(String marker : JUNIT_JAR_MARKERS)
-		{
-			if(LibrariesHelper.getInstance().isClassAvailable(new String[] {file.getUrl()}, marker))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+    private static boolean isTestJarRoot(VirtualFile file) {
+        for (String marker : JUNIT_JAR_MARKERS) {
+            if (LibrariesHelper.getInstance().isClassAvailable(new String[]{file.getUrl()}, marker)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
