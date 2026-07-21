@@ -45,7 +45,7 @@ public class TestClassFilter implements ClassFilter.ClassFilterWithScope
 	private final Project myProject;
 	private final GlobalSearchScope myScope;
 
-	private TestClassFilter(@Nullable PsiClass base, final GlobalSearchScope scope)
+    private TestClassFilter(@Nullable PsiClass base, final GlobalSearchScope scope)
 	{
 		myBase = base;
 		myProject = scope.getProject();
@@ -62,9 +62,10 @@ public class TestClassFilter implements ClassFilter.ClassFilterWithScope
 		return myProject;
 	}
 
-	public boolean isAccepted(final PsiClass aClass)
+	@Override
+    public boolean isAccepted(final PsiClass aClass)
 	{
-		return ReadAction.compute(() ->
+        return ReadAction.compute(() ->
 		{
 			if(aClass.getQualifiedName() != null && (myBase != null && aClass.isInheritor(myBase, true) && ConfigurationUtil.PUBLIC_INSTANTIATABLE_CLASS.test(aClass) || JUnitUtil.isTestClass
 					(aClass)))
@@ -157,7 +158,8 @@ public class TestClassFilter implements ClassFilter.ClassFilterWithScope
 		};
 	}
 
-	public GlobalSearchScope getScope()
+	@Override
+    public GlobalSearchScope getScope()
 	{
 		return myScope;
 	}

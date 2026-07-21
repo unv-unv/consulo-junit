@@ -35,7 +35,8 @@ import jakarta.annotation.Nullable;
 @ExtensionImpl
 public class JUnit3Framework extends JavaTestFramework
 {
-	@Nonnull
+    @Nonnull
+    @Override
 	public String getName()
 	{
 		return "JUnit3";
@@ -84,6 +85,7 @@ public class JUnit3Framework extends JavaTestFramework
 		return AllIcons.RunConfigurations.Junit;
 	}
 
+    @Override
 	protected String getMarkerClassFQName()
 	{
 		return "junit.framework.TestCase";
@@ -97,11 +99,13 @@ public class JUnit3Framework extends JavaTestFramework
 	}
 
 	@Nullable
+    @Override
 	public String getDefaultSuperClass()
 	{
 		return "junit.framework.TestCase";
 	}
 
+    @Override
 	public boolean isTestClass(PsiClass clazz, boolean canBePotential)
 	{
 		if(JUnitUtil.isJUnit3TestClass(clazz))
@@ -186,17 +190,20 @@ public class JUnit3Framework extends JavaTestFramework
 		return inClass;
 	}
 
+    @Override
 	public FileTemplateDescriptor getSetUpMethodFileTemplateDescriptor()
 	{
 		return new FileTemplateDescriptor("JUnit3 SetUp Method.java");
 	}
 
+    @Override
 	public FileTemplateDescriptor getTearDownMethodFileTemplateDescriptor()
 	{
 		return new FileTemplateDescriptor("JUnit3 TearDown Method.java");
 	}
 
 	@Nonnull
+    @Override
 	public FileTemplateDescriptor getTestMethodFileTemplateDescriptor()
 	{
 		return new FileTemplateDescriptor("JUnit3 Test Method.java");

@@ -50,13 +50,12 @@ public class JUnit4TestRunnerUtil {
         if (suiteClassNames.length == 0) {
             return null;
         }
-        Vector result = new Vector();
-        for (int i = 0; i < suiteClassNames.length; i++) {
-            String suiteClassName = suiteClassNames[i];
+        Vector<Class> result = new Vector<>();
+        for (String suiteClassName : suiteClassNames) {
             if (suiteClassName.charAt(0) == '@') {
                 // all tests in the package specified
                 try {
-                    final Map classMethods = new HashMap();
+                    final Map<String, Set<String>> classMethods = new HashMap<>();
                     BufferedReader reader =
                         new BufferedReader(new InputStreamReader(new FileInputStream(suiteClassName.substring(1)), "UTF-8"));
                     try {
@@ -76,9 +75,9 @@ public class JUnit4TestRunnerUtil {
                             final int idx = line.indexOf(',');
                             if (idx != -1) {
                                 className = line.substring(0, idx);
-                                Set methodNames = (Set)classMethods.get(className);
+                                Set<String> methodNames = classMethods.get(className);
                                 if (methodNames == null) {
-                                    methodNames = new HashSet();
+                                    methodNames = new HashSet<>();
                                     classMethods.put(className, methodNames);
                                 }
                                 methodNames.add(line.substring(idx + 1));
@@ -97,17 +96,15 @@ public class JUnit4TestRunnerUtil {
                             Class.forName("org.junit.runner.Computer");
                             allClasses = JUnit46ClassesRequestBuilder.getClassesRequest(suiteName, classes, classMethods, category);
                         }
-                        catch (ClassNotFoundException e) {
-                            allClasses = getClassRequestsUsing44API(suiteName, classes);
-                        }
-                        catch (NoSuchMethodError e) {
+                        catch (ClassNotFoundException | NoSuchMethodError e) {
                             allClasses = getClassRequestsUsing44API(suiteName, classes);
                         }
 
                         return classMethods.isEmpty() ? allClasses : allClasses.filterWith(new Filter() {
+                            @Override
                             public boolean shouldRun(Description description) {
                                 if (description.isTest()) {
-                                    final Set methods = (Set)classMethods.get(JUnit4ReflectionUtil.getClassName(description));
+                                    Set<String> methods = classMethods.get(JUnit4ReflectionUtil.getClassName(description));
                                     if (methods == null) {
                                         return true;
                                     }
@@ -122,7 +119,7 @@ public class JUnit4TestRunnerUtil {
 
                                     final Class testClass = description.getTestClass();
                                     if (testClass != null) {
-                                        final RunWith classAnnotation = (RunWith)testClass.getAnnotation(RunWith.class);
+                                        final RunWith classAnnotation = (RunWith) testClass.getAnnotation(RunWith.class);
                                         if (classAnnotation != null && Parameterized.class.isAssignableFrom(classAnnotation.value())) {
                                             final int idx = methodName.indexOf("[");
                                             if (idx > -1) {
@@ -135,6 +132,7 @@ public class JUnit4TestRunnerUtil {
                                 return true;
                             }
 
+                            @Override
                             public String describe() {
                                 return "Tests";
                             }
@@ -154,7 +152,7 @@ public class JUnit4TestRunnerUtil {
                 if (index != -1) {
                     final Class clazz = loadTestClass(suiteClassName.substring(0, index));
                     final String methodName = suiteClassName.substring(index + 1);
-                    final RunWith clazzAnnotation = (RunWith)clazz.getAnnotation(RunWith.class);
+                    RunWith clazzAnnotation = (RunWith) clazz.getAnnotation(RunWith.class);
                     final Description testMethodDescription = Description.createTestDescription(clazz, methodName);
                     if (clazzAnnotation == null) { //do not override external runners
                         try {
@@ -165,10 +163,12 @@ public class JUnit4TestRunnerUtil {
                                     JUnit45ClassesRequestBuilder.createIgnoreIgnoredClassRequest(clazz, true);
                                 final Filter ignoredTestFilter = Filter.matchMethodDescription(testMethodDescription);
                                 return classRequest.filterWith(new Filter() {
+                                    @Override
                                     public boolean shouldRun(Description description) {
                                         return ignoredTestFilter.shouldRun(description);
                                     }
 
+                                    @Override
                                     public String describe() {
                                         return "Ignored " + methodName;
                                     }
@@ -202,6 +202,7 @@ public class JUnit4TestRunnerUtil {
                         return Request.method(clazz, methodName);
                     }
                     return Request.aClass(clazz).filterWith(new Filter() {
+                        @Override
                         public boolean shouldRun(Description description) {
                             if (description.isTest()
                                 && description.getDisplayName().startsWith("warning(junit.framework.TestSuite$")) {
@@ -211,6 +212,7 @@ public class JUnit4TestRunnerUtil {
                             return methodFilter.shouldRun(description);
                         }
 
+                        @Override
                         public String describe() {
                             return methodFilter.describe();
                         }
@@ -219,7 +221,7 @@ public class JUnit4TestRunnerUtil {
                 else if (name != null && suiteClassNames.length == 1) {
                     final Class clazz = loadTestClass(suiteClassName);
                     if (clazz != null) {
-                        final RunWith clazzAnnotation = (RunWith)clazz.getAnnotation(RunWith.class);
+                        RunWith clazzAnnotation = (RunWith) clazz.getAnnotation(RunWith.class);
                         final Request request = getParameterizedRequest(name, null, clazz, clazzAnnotation);
                         if (request != null) {
                             return request;
@@ -231,7 +233,7 @@ public class JUnit4TestRunnerUtil {
         }
 
         if (result.size() == 1) {
-            final Class clazz = (Class)result.get(0);
+            final Class clazz = result.get(0);
             try {
                 if (clazz.getAnnotation(Ignore.class) != null) { //override ignored case only
                     return JUnit45ClassesRequestBuilder.createIgnoreIgnoredClassRequest(clazz, false);
@@ -267,6 +269,7 @@ public class JUnit4TestRunnerUtil {
                 Class.forName("org.junit.runners.BlockJUnit4ClassRunner"); //ignore for junit4.4 and <
                 final Constructor runnerConstructor = runnerClass.getConstructor(new Class[]{Class.class});
                 return Request.runner((Runner)runnerConstructor.newInstance(clazz)).filterWith(new Filter() {
+                    @Override
                     public boolean shouldRun(Description description) {
                         final String descriptionMethodName = description.getMethodName();
                         //filter by params
@@ -283,6 +286,7 @@ public class JUnit4TestRunnerUtil {
                         return true;
                     }
 
+                    @Override
                     public String describe() {
                         if (parameterString == null) {
                             return methodName + " with any parameter";
@@ -313,7 +317,7 @@ public class JUnit4TestRunnerUtil {
         return allClasses;
     }
 
-    private static void appendTestClass(Vector result, String className) {
+    private static void appendTestClass(Vector<Class> result, String className) {
         final Class aClass = loadTestClass(className);
         if (!result.contains(aClass)) {  //do not append classes twice: rerun failed tests from one test suite
             result.addElement(aClass);

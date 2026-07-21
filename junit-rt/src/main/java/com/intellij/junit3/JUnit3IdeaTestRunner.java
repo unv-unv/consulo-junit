@@ -49,11 +49,13 @@ public class JUnit3IdeaTestRunner extends TestRunner implements IdeaTestRunner {
         super(DeafStream.DEAF_PRINT_STREAM);
     }
 
+    @Override
     public void createListeners(ArrayList listeners, int count) {
         myTestsListener = new SMTestListener();
         myListeners = listeners;
     }
 
+    @Override
     public int startRunnerWithArgs(String[] args, String name, int count, boolean sendTree) {
         setPrinter(new MockResultPrinter());
         try {
@@ -69,55 +71,66 @@ public class JUnit3IdeaTestRunner extends TestRunner implements IdeaTestRunner {
         }
     }
 
+    @Override
     public void clearStatus() {
         super.clearStatus();
     }
 
+    @Override
     public void runFailed(String message) {
         super.runFailed(message);
     }
 
+    @Override
     public Object getTestToStart(String[] args, String name) {
         return TestRunnerUtil.getTestSuite(this, args);
     }
 
+    @Override
     public List getChildTests(Object description) {
-        return getTestCasesOf((Test)description);
+        return getTestCasesOf((Test) description);
     }
 
+    @Override
     public String getTestClassName(Object child) {
-        return child instanceof TestSuite ? ((TestSuite)child).getName() : child.getClass().getName();
+        return child instanceof TestSuite ? ((TestSuite) child).getName() : child.getClass().getName();
     }
 
+    @Override
     public String getStartDescription(Object child) {
-        final Test test = (Test)child;
-      return test instanceof TestCase
-          ? test.getClass().getName() + "," + ((TestCase)test).getName()
-          : test.toString();
+        final Test test = (Test) child;
+        return test instanceof TestCase
+            ? test.getClass().getName() + "," + ((TestCase) test).getName()
+            : test.toString();
     }
 
+    @Override
     protected TestResult createTestResult() {
         TestResult testResult = super.createTestResult();
         testResult.addListener(myTestsListener);
         try {
             for (int i = 0; i < myListeners.size(); i++) {
-                final IDEAJUnitListener junitListener = (IDEAJUnitListener)Class.forName((String)myListeners.get(i)).newInstance();
+                final IDEAJUnitListener junitListener = (IDEAJUnitListener) Class.forName((String) myListeners.get(i)).newInstance();
                 testResult.addListener(new TestListener() {
+                    @Override
                     public void addError(Test test, Throwable t) {
                     }
 
+                    @Override
                     public void addFailure(Test test, AssertionFailedError t) {
                     }
 
+                    @Override
                     public void endTest(Test test) {
                         if (test instanceof TestCase) {
-                            junitListener.testFinished(test.getClass().getName(), ((TestCase)test).getName());
+                            junitListener.testFinished(test.getClass().getName(), ((TestCase) test).getName());
                         }
                     }
 
+                    @Override
                     public void startTest(Test test) {
                         if (test instanceof TestCase) {
-                            junitListener.testStarted(test.getClass().getName(), ((TestCase)test).getName());
+                            junitListener.testStarted(test.getClass().getName(), ((TestCase) test).getName());
                         }
                     }
                 });
@@ -129,6 +142,7 @@ public class JUnit3IdeaTestRunner extends TestRunner implements IdeaTestRunner {
         return testResult;
     }
 
+    @Override
     public TestResult doRun(Test suite, boolean wait) {  //todo
         final TestResult testResult = super.doRun(suite, wait);
         myTestsListener.finishSuite();
@@ -139,12 +153,12 @@ public class JUnit3IdeaTestRunner extends TestRunner implements IdeaTestRunner {
     static Vector getTestCasesOf(Test test) {
         Vector testCases = new Vector();
         if (test instanceof TestRunnerUtil.SuiteMethodWrapper) {
-            test = ((TestRunnerUtil.SuiteMethodWrapper)test).getSuite();
+            test = ((TestRunnerUtil.SuiteMethodWrapper) test).getSuite();
         }
         if (test instanceof TestSuite) {
-            for (Enumeration each = ((TestSuite)test).tests(); each.hasMoreElements(); ) {
+            for (Enumeration each = ((TestSuite) test).tests(); each.hasMoreElements(); ) {
                 Object childTest = each.nextElement();
-                if (childTest instanceof TestSuite && !((TestSuite)childTest).tests().hasMoreElements()) {
+                if (childTest instanceof TestSuite && !((TestSuite) childTest).tests().hasMoreElements()) {
                     continue;
                 }
                 testCases.addElement(childTest);
@@ -163,6 +177,7 @@ public class JUnit3IdeaTestRunner extends TestRunner implements IdeaTestRunner {
         private String myClassName;
         private long myCurrentTestStart;
 
+        @Override
         public void addError(Test test, Throwable e) {
             testFailure(e, MapSerializerUtil.TEST_FAILED, getMethodName(test));
         }
@@ -178,7 +193,7 @@ public class JUnit3IdeaTestRunner extends TestRunner implements IdeaTestRunner {
                 final String trace = getTrace(failure);
                 ComparisonFailureData notification = null;
                 if (failure instanceof FileComparisonFailure) {
-                    FileComparisonFailure comparisonFailure = (FileComparisonFailure)failure;
+                    FileComparisonFailure comparisonFailure = (FileComparisonFailure) failure;
                     notification = new ComparisonFailureData(comparisonFailure.getExpected(), comparisonFailure.getActual(),
                         comparisonFailure.getFilePath(), comparisonFailure.getActualFilePath()
                     );
@@ -224,16 +239,19 @@ public class JUnit3IdeaTestRunner extends TestRunner implements IdeaTestRunner {
                 : null;
         }
 
+        @Override
         public void addFailure(Test test, AssertionFailedError e) {
             addError(test, e);
         }
 
+        @Override
         public void endTest(Test test) {
             final long duration = System.currentTimeMillis() - myCurrentTestStart;
             System.out.println("\n##teamcity[testFinished name=\'" + escapeName(getMethodName(test)) +
                 (duration > 0 ? "\' duration=\'" + Long.toString(duration) : "") + "\']");
         }
 
+        @Override
         public void startTest(Test test) {
             myCurrentTestStart = System.currentTimeMillis();
             final String className = getClassName(test);
@@ -242,13 +260,13 @@ public class JUnit3IdeaTestRunner extends TestRunner implements IdeaTestRunner {
                 myClassName = className;
                 System.out.println(
                     "##teamcity[testSuiteStarted name =\'" + escapeName(myClassName) +
-                    "\' locationHint=\'java:suite://" + escapeName(className) + "\']"
+                        "\' locationHint=\'java:suite://" + escapeName(className) + "\']"
                 );
             }
             final String methodName = getMethodName(test);
             System.out.println(
                 "##teamcity[testStarted name=\'" + escapeName(methodName) +
-                "\' locationHint=\'java:test://" + escapeName(className + "." + methodName) + "\']"
+                    "\' locationHint=\'java:test://" + escapeName(className + "." + methodName) + "\']"
             );
         }
 

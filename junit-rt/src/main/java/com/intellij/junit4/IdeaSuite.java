@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intellij.junit4;
 
 import junit.framework.Test;
@@ -44,15 +43,15 @@ class IdeaSuite extends Suite {
         myName = name;
     }
 
+    @Override
     public Description getDescription() {
         Description description = Description.createSuiteDescription(myName, getTestClass().getAnnotations());
         try {
             final Method getFilteredChildrenMethod = ParentRunner.class.getDeclaredMethod("getFilteredChildren", new Class[0]);
             getFilteredChildrenMethod.setAccessible(true);
             Collection filteredChildren = (Collection)getFilteredChildrenMethod.invoke(this);
-            for (Iterator iterator = filteredChildren.iterator(); iterator.hasNext(); ) {
-                Object child = iterator.next();
-                description.addChild(describeChild((Runner)child));
+            for (Object child : filteredChildren) {
+                description.addChild(describeChild((Runner) child));
             }
         }
         catch (Exception e) {
@@ -61,24 +60,25 @@ class IdeaSuite extends Suite {
         return description;
     }
 
+    @Override
     protected Description describeChild(Runner child) {
         final Description superDescription = super.describeChild(child);
         if (child instanceof ClassAwareSuiteMethod) {
             final Description description = Description.createSuiteDescription(((ClassAwareSuiteMethod)child).getKlass());
             ArrayList children = superDescription.getChildren();
-            for (int i = 0, size = children.size(); i < size; i++) {
-                description.addChild((Description)children.get(i));
+            for (Object aChildren : children) {
+                description.addChild((Description) aChildren);
             }
             return description;
         }
         return superDescription;
     }
 
+    @Override
     protected List<Runner> getChildren() {
         final List<Runner> children = new ArrayList<>(super.getChildren());
         boolean containsSuiteInside = false;
-        for (Iterator iterator = children.iterator(); iterator.hasNext(); ) {
-            Object child = iterator.next();
+        for (Runner child : children) {
             if (isSuite(child)) {
                 containsSuiteInside = true;
                 break;
@@ -89,12 +89,10 @@ class IdeaSuite extends Suite {
         }
         try {
             final Set allNames = new HashSet();
-            for (Iterator<Runner> iterator = children.iterator(); iterator.hasNext(); ) {
-                final Runner child = iterator.next();
+            for (final Runner child : children) {
                 allNames.add(describeChild(child).getDisplayName());
             }
-            for (Iterator iterator = children.iterator(); iterator.hasNext(); ) {
-                final Object child = iterator.next();
+            for (final Runner child : children) {
                 if (isSuite(child)) {
                     skipSuiteComponents(allNames, child);
                 }
@@ -107,7 +105,7 @@ class IdeaSuite extends Suite {
                 }
             }
         }
-        catch (Throwable e) {
+        catch (Throwable ignored) {
         }
         return children;
     }
@@ -122,8 +120,8 @@ class IdeaSuite extends Suite {
                 final Method getChildrenMethod = Suite.class.getDeclaredMethod("getChildren", new Class[0]);
                 getChildrenMethod.setAccessible(true);
                 final List tests = (List)getChildrenMethod.invoke(child);
-                for (Iterator suiteIterator = tests.iterator(); suiteIterator.hasNext(); ) {
-                    final String displayName = describeChild((Runner)suiteIterator.next()).getDisplayName();
+                for (Object test : tests) {
+                    final String displayName = describeChild((Runner) test).getDisplayName();
                     if (allNames.contains(displayName)) {
                         allNames.remove(displayName);
                     }

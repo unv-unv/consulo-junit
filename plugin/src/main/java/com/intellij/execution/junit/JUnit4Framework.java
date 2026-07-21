@@ -9,7 +9,6 @@ import com.intellij.java.language.psi.*;
 import com.intellij.java.language.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.java.language.testIntegration.JavaTestFramework;
 import consulo.annotation.component.ExtensionImpl;
-import consulo.application.AllIcons;
 import consulo.application.ApplicationManager;
 import consulo.application.CommonBundle;
 import consulo.execution.configuration.ConfigurationType;
@@ -17,6 +16,7 @@ import consulo.fileTemplate.FileTemplateDescriptor;
 import consulo.language.psi.PsiElement;
 import consulo.language.psi.PsiManager;
 import consulo.language.util.IncorrectOperationException;
+import consulo.platform.base.icon.PlatformIconGroup;
 import consulo.ui.ex.awt.Messages;
 import consulo.ui.image.Image;
 
@@ -27,6 +27,7 @@ import jakarta.annotation.Nullable;
 public class JUnit4Framework extends JavaTestFramework
 {
 	@Nonnull
+    @Override
 	public String getName()
 	{
 		return "JUnit4";
@@ -36,10 +37,11 @@ public class JUnit4Framework extends JavaTestFramework
 	@Override
 	public Image getIcon()
 	{
-		return AllIcons.RunConfigurations.Junit;
+		return PlatformIconGroup.runconfigurationsJunit();
 	}
 
-	protected String getMarkerClassFQName()
+	@Override
+    protected String getMarkerClassFQName()
 	{
 		return JUnitUtil.TEST_ANNOTATION;
 	}
@@ -51,12 +53,14 @@ public class JUnit4Framework extends JavaTestFramework
 		return JUnitExternalLibraryDescriptor.JUNIT4;
 	}
 
-	@Nullable
+    @Nullable
+    @Override
 	public String getDefaultSuperClass()
 	{
 		return null;
 	}
 
+    @Override
 	public boolean isTestClass(PsiClass clazz, boolean canBePotential)
 	{
 		if(canBePotential)
@@ -169,17 +173,20 @@ public class JUnit4Framework extends JavaTestFramework
 		return type instanceof JUnitConfigurationType;
 	}
 
+    @Override
 	public FileTemplateDescriptor getSetUpMethodFileTemplateDescriptor()
 	{
 		return new FileTemplateDescriptor("JUnit4 SetUp Method.java");
 	}
 
+    @Override
 	public FileTemplateDescriptor getTearDownMethodFileTemplateDescriptor()
 	{
 		return new FileTemplateDescriptor("JUnit4 TearDown Method.java");
 	}
 
 	@Nonnull
+    @Override
 	public FileTemplateDescriptor getTestMethodFileTemplateDescriptor()
 	{
 		return new FileTemplateDescriptor("JUnit4 Test Method.java");

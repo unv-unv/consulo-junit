@@ -24,7 +24,7 @@ import java.util.List;
 
 /**
  * @author anna
- * @since 6.04.2011
+ * @since 2011-04-06
  */
 public class JUnitForkedSplitter extends ForkedSplitter {
     private IdeaTestRunner myTestRunner;
@@ -33,21 +33,24 @@ public class JUnitForkedSplitter extends ForkedSplitter {
         super(workingDirsPath, forkMode, newArgs);
     }
 
-
+    @Override
     protected String getStarterName() {
         return JUnitForkedStarter.class.getName();
     }
 
+    @Override
     protected Object createRootDescription(String[] args, String configName)
         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         myTestRunner = (IdeaTestRunner)JUnitStarter.getAgentClass((String)myNewArgs.get(0)).newInstance();
         return myTestRunner.getTestToStart(args, configName);
     }
 
+    @Override
     protected String getTestClassName(Object child) {
         return myTestRunner.getTestClassName(child);
     }
 
+    @Override
     protected List createChildArgs(Object child) {
         List newArgs = new ArrayList();
         newArgs.add(myTestRunner.getStartDescription(child));
@@ -55,12 +58,8 @@ public class JUnitForkedSplitter extends ForkedSplitter {
         return newArgs;
     }
 
-    protected List createPerModuleArgs(
-        String packageName,
-        String workingDir,
-        List classNames,
-        Object rootDescription
-    ) throws IOException {
+    @Override
+    protected List createPerModuleArgs(String packageName, String workingDir, List classNames, Object rootDescription) throws IOException {
         File tempFile = File.createTempFile("idea_junit", ".tmp");
         tempFile.deleteOnExit();
         JUnitStarter.printClassesList(classNames, packageName, "", "", tempFile);
@@ -70,6 +69,7 @@ public class JUnitForkedSplitter extends ForkedSplitter {
         return childArgs;
     }
 
+    @Override
     protected List getChildren(Object child) {
         return myTestRunner.getChildTests(child);
     }
