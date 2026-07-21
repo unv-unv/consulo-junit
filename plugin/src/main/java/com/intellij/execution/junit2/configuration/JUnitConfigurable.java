@@ -145,15 +145,12 @@ public class JUnitConfigurable<T extends JUnitConfiguration> extends SettingsEdi
         myJrePathEditor.setDefaultJreSelector(DefaultJreSelector.fromModuleDependencies(getModulesComponent(), false));
         myCommonJavaParameters.setModuleContext(myModuleSelector.getModule());
         myCommonJavaParameters.setHasModuleMacro();
-        myModule.getComponent().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                myCommonJavaParameters.setModuleContext(myModuleSelector.getModule());
-            }
-        });
+        myModule.getComponent().addActionListener(e -> myCommonJavaParameters.setModuleContext(myModuleSelector.getModule()));
         myBrowsers = new BrowseModuleValueActionListener[]{
             new PackageChooserActionListener(project),
             new TestClassBrowser(project),
             new MethodBrowser(project) {
+                @Override
                 protected Condition<PsiMethod> getFilter(PsiClass testClass) {
                     return new JUnitUtil.TestMethodFilter(testClass);
                 }
@@ -287,11 +284,7 @@ public class JUnitConfigurable<T extends JUnitConfiguration> extends SettingsEdi
             mySingleModuleScope,
             myModuleWDScope
         }, null);
-        myWholeProjectScope.addChangeListener(new ChangeListener() {
-            public void stateChanged(final ChangeEvent e) {
-                onScopeChanged();
-            }
-        });
+        myWholeProjectScope.addChangeListener(e -> onScopeChanged());
 
         UIUtil.setEnabled(myCommonJavaParameters.getProgramParametersComponent(), false, true);
 
@@ -323,6 +316,7 @@ public class JUnitConfigurable<T extends JUnitConfiguration> extends SettingsEdi
         }
     }
 
+    @Override
     public void applyEditorTo(@Nonnull final JUnitConfiguration configuration) {
         configuration.setRepeatMode((String)myRepeatCb.getSelectedItem());
         try {
@@ -353,6 +347,7 @@ public class JUnitConfigurable<T extends JUnitConfiguration> extends SettingsEdi
         configuration.setShortenCommandLine((ShortenCommandLine)myShortenClasspathModeCombo.getComponent().getSelectedItem());
     }
 
+    @Override
     public void resetEditorFrom(@Nonnull final JUnitConfiguration configuration) {
         final int count = configuration.getRepeatCount();
         myRepeatCountField.setText(String.valueOf(count));
@@ -657,6 +652,7 @@ public class JUnitConfigurable<T extends JUnitConfiguration> extends SettingsEdi
     }
 
     @Nonnull
+    @Override
     public JComponent createEditor() {
         return myWholePanel;
     }
@@ -671,6 +667,7 @@ public class JUnitConfigurable<T extends JUnitConfiguration> extends SettingsEdi
             super(project);
         }
 
+        @Override
         protected String showDialog() {
             PackageChooser chooser = getProject().getInstance(PackageChooserFactory.class).create();
             List<PsiJavaPackage> packages = chooser.showAndSelect();
@@ -707,14 +704,17 @@ public class JUnitConfigurable<T extends JUnitConfiguration> extends SettingsEdi
             super(project, ExecutionBundle.message("choose.test.class.dialog.title"));
         }
 
+        @Override
         protected void onClassChoosen(final PsiClass psiClass) {
             setPackage(JUnitUtil.getContainingPackage(psiClass));
         }
 
+        @Override
         protected PsiClass findClass(final String className) {
             return getModuleSelector().findClass(className);
         }
 
+        @Override
         protected ClassFilter.ClassFilterWithScope getFilter() throws NoFilterException {
             final ConfigurationModuleSelector moduleSelector = getModuleSelector();
             final Module module = moduleSelector.getModule();
@@ -743,10 +743,12 @@ public class JUnitConfigurable<T extends JUnitConfiguration> extends SettingsEdi
             super(project, "Category Interface");
         }
 
+        @Override
         protected PsiClass findClass(final String className) {
             return myModuleSelector.findClass(className);
         }
 
+        @Override
         protected ClassFilter.ClassFilterWithScope getFilter() throws NoFilterException {
             final Module module = myModuleSelector.getModule();
             final GlobalSearchScope scope;
@@ -757,10 +759,12 @@ public class JUnitConfigurable<T extends JUnitConfiguration> extends SettingsEdi
                 scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module);
             }
             return new ClassFilter.ClassFilterWithScope() {
+                @Override
                 public GlobalSearchScope getScope() {
                     return scope;
                 }
 
+                @Override
                 public boolean isAccepted(final PsiClass aClass) {
                     return true;
                 }

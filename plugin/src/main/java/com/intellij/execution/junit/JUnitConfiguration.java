@@ -56,6 +56,8 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 
 import jakarta.annotation.Nonnull;
+import org.jspecify.annotations.Nullable;
+
 import java.util.*;
 
 public class JUnitConfiguration extends JavaTestConfigurationBase
@@ -371,7 +373,8 @@ public class JUnitConfiguration extends JavaTestConfigurationBase
 		return !Comparing.strEqual(data.TEST_OBJECT, TEST_PACKAGE) ? null : data.getPackageName();
 	}
 
-	public void beClassConfiguration(final PsiClass testClass)
+	@Override
+    public void beClassConfiguration(final PsiClass testClass)
 	{
 		if(FORK_KLASS.equals(getForkMode()))
 		{
@@ -437,7 +440,8 @@ public class JUnitConfiguration extends JavaTestConfigurationBase
 		}
 	}
 
-	public void beMethodConfiguration(final Location<PsiMethod> methodLocation)
+	@Override
+    public void beMethodConfiguration(final Location<PsiMethod> methodLocation)
 	{
 		setForkMode(FORK_NONE);
 		setModule(myData.setTestMethod(methodLocation));
@@ -601,7 +605,8 @@ public class JUnitConfiguration extends JavaTestConfigurationBase
 		return false;
 	}
 
-	public void bePatternConfiguration(List<PsiClass> classes, PsiMethod method)
+	@Override
+    public void bePatternConfiguration(List<PsiClass> classes, PsiMethod method)
 	{
 		myData.TEST_OBJECT = TEST_PATTERN;
 		final LinkedHashSet<String> patterns = new LinkedHashSet<>();
@@ -689,7 +694,8 @@ public class JUnitConfiguration extends JavaTestConfigurationBase
 		private Map<String, String> myEnvs = new LinkedHashMap<>();
 		private String myChangeList = "All";
 
-		public boolean equals(final Object object)
+		@Override
+        public boolean equals(@Nullable Object object)
 		{
 			if(!(object instanceof Data))
 			{
@@ -703,7 +709,8 @@ public class JUnitConfiguration extends JavaTestConfigurationBase
 					.equal(REPEAT_MODE, second.REPEAT_MODE) && REPEAT_COUNT == second.REPEAT_COUNT;
 		}
 
-		public int hashCode()
+		@Override
+        public int hashCode()
 		{
 			return Comparing.hashcode(TEST_OBJECT) ^ Comparing.hashcode(getMainClassName()) ^ Comparing.hashcode(getPackageName()) ^ Comparing.hashcode(getMethodNameWithSignature()) ^ Comparing
 					.hashcode(getWorkingDirectory()) ^ Comparing.hashcode(VM_PARAMETERS) ^ Comparing.hashcode(PARAMETERS) ^ Comparing.hashcode(myPattern) ^ Comparing.hashcode(FORK_MODE) ^ Comparing

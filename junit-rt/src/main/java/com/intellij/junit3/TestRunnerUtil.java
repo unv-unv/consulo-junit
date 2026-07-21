@@ -258,6 +258,7 @@ public class TestRunnerUtil {
             return myMessage;
         }
 
+        @Override
         protected void runTest() throws Throwable {
             try {
                 //noinspection Since15
@@ -282,10 +283,12 @@ public class TestRunnerUtil {
             return myClassName;
         }
 
+        @Override
         public int countTestCases() {
             return mySuite.countTestCases();
         }
 
+        @Override
         public void run(TestResult result) {
             mySuite.run(result);
         }

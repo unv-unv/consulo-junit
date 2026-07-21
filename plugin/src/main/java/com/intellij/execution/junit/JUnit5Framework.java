@@ -11,16 +11,20 @@ import com.intellij.java.language.psi.PsiElementFactory;
 import com.intellij.java.language.psi.PsiMethod;
 import com.intellij.java.language.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.java.language.testIntegration.JavaTestFramework;
+import consulo.annotation.access.RequiredReadAction;
+import consulo.annotation.access.RequiredWriteAction;
 import consulo.annotation.component.ExtensionImpl;
-import consulo.application.AllIcons;
-import consulo.application.ApplicationManager;
-import consulo.application.CommonBundle;
+import consulo.application.Application;
 import consulo.execution.configuration.ConfigurationType;
 import consulo.fileTemplate.FileTemplateDescriptor;
 import consulo.language.psi.PsiElement;
 import consulo.language.psi.PsiManager;
 import consulo.language.util.IncorrectOperationException;
+import consulo.platform.base.icon.PlatformIconGroup;
+import consulo.platform.base.localize.CommonLocalize;
+import consulo.ui.annotation.RequiredUIAccess;
 import consulo.ui.ex.awt.Messages;
+import consulo.ui.ex.awt.UIUtil;
 import consulo.ui.image.Image;
 
 import jakarta.annotation.Nonnull;
@@ -30,6 +34,7 @@ import jakarta.annotation.Nullable;
 public class JUnit5Framework extends JavaTestFramework
 {
 	@Nonnull
+    @Override
 	public String getName()
 	{
 		return "JUnit5";
@@ -39,10 +44,11 @@ public class JUnit5Framework extends JavaTestFramework
 	@Override
 	public Image getIcon()
 	{
-		return AllIcons.RunConfigurations.Junit;
+		return PlatformIconGroup.runconfigurationsJunit();
 	}
 
-	protected String getMarkerClassFQName()
+	@Override
+    protected String getMarkerClassFQName()
 	{
 		return JUnitUtil.TEST5_ANNOTATION;
 	}
@@ -55,12 +61,15 @@ public class JUnit5Framework extends JavaTestFramework
 	}
 
 	@Nullable
+    @Override
 	public String getDefaultSuperClass()
 	{
 		return null;
 	}
 
-	public boolean isTestClass(PsiClass clazz, boolean canBePotential)
+	@Override
+    @RequiredReadAction
+    public boolean isTestClass(PsiClass clazz, boolean canBePotential)
 	{
 		if(canBePotential)
 		{
@@ -97,8 +106,10 @@ public class JUnit5Framework extends JavaTestFramework
 		return null;
 	}
 
-	@Override
+    @Override
 	@Nullable
+    @RequiredUIAccess
+    @RequiredWriteAction
 	protected PsiMethod findOrCreateSetUpMethod(PsiClass clazz) throws IncorrectOperationException
 	{
 		PsiMethod method = findSetUpMethod(clazz);
@@ -118,11 +129,16 @@ public class JUnit5Framework extends JavaTestFramework
 			{
 				return existingMethod;
 			}
-			int exit = ApplicationManager.getApplication().isUnitTestMode() ? Messages.OK : Messages.showOkCancelDialog("Method setUp already exist but is not annotated as @BeforeEach. Annotate?",
-					CommonBundle.getWarningTitle(), Messages.getWarningIcon());
+            int exit = Application.get().isUnitTestMode() ? Messages.OK :
+                Messages.showOkCancelDialog(
+                    "Method setUp already exist but is not annotated as @BeforeEach. Annotate?",
+                    CommonLocalize.titleWarning().get(),
+                    UIUtil.getWarningIcon()
+                );
 			if(exit == Messages.OK)
 			{
-				new AddAnnotationFix(JUnitUtil.BEFORE_EACH_ANNOTATION_NAME, existingMethod).invoke(existingMethod.getProject(), null, existingMethod.getContainingFile());
+				new AddAnnotationFix(JUnitUtil.BEFORE_EACH_ANNOTATION_NAME, existingMethod)
+                    .invoke(existingMethod.getProject(), null, existingMethod.getContainingFile());
 				return existingMethod;
 			}
 		}
@@ -171,17 +187,20 @@ public class JUnit5Framework extends JavaTestFramework
 		return true;
 	}
 
+    @Override
 	public FileTemplateDescriptor getSetUpMethodFileTemplateDescriptor()
 	{
 		return new FileTemplateDescriptor("JUnit5 SetUp Method.java");
 	}
 
+    @Override
 	public FileTemplateDescriptor getTearDownMethodFileTemplateDescriptor()
 	{
 		return new FileTemplateDescriptor("JUnit5 TearDown Method.java");
 	}
 
-	@Nonnull
+    @Nonnull
+    @Override
 	public FileTemplateDescriptor getTestMethodFileTemplateDescriptor()
 	{
 		return new FileTemplateDescriptor("JUnit5 Test Method.java");

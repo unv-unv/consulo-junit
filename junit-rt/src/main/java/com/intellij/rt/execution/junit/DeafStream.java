@@ -23,6 +23,7 @@ public class DeafStream extends OutputStream {
     public static final DeafStream CURRENT = new DeafStream();
     public static final PrintStream DEAF_PRINT_STREAM = new PrintStream(CURRENT);
 
+    @Override
     public void write(int b) throws IOException {
     }
 }

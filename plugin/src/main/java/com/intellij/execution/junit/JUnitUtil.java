@@ -513,6 +513,7 @@ public class JUnitUtil {
             this.framework = framework instanceof JavaTestFramework javaTestFramework ? javaTestFramework : null;
         }
 
+        @Override
         public boolean value(final PsiMethod method) {
             return framework != null ? framework.isTestMethod(method, myClass) : isTestMethod(MethodLocation.elementInClass(method, myClass));
         }
