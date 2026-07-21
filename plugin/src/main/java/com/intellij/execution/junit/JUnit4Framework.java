@@ -8,16 +8,19 @@ import com.intellij.java.language.projectRoots.roots.ExternalLibraryDescriptor;
 import com.intellij.java.language.psi.*;
 import com.intellij.java.language.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.java.language.testIntegration.JavaTestFramework;
+import consulo.annotation.access.RequiredWriteAction;
 import consulo.annotation.component.ExtensionImpl;
-import consulo.application.ApplicationManager;
-import consulo.application.CommonBundle;
+import consulo.application.Application;
 import consulo.execution.configuration.ConfigurationType;
 import consulo.fileTemplate.FileTemplateDescriptor;
 import consulo.language.psi.PsiElement;
 import consulo.language.psi.PsiManager;
 import consulo.language.util.IncorrectOperationException;
 import consulo.platform.base.icon.PlatformIconGroup;
+import consulo.platform.base.localize.CommonLocalize;
+import consulo.ui.annotation.RequiredUIAccess;
 import consulo.ui.ex.awt.Messages;
+import consulo.ui.ex.awt.UIUtil;
 import consulo.ui.image.Image;
 
 import jakarta.annotation.Nonnull;
@@ -98,8 +101,8 @@ public class JUnit4Framework extends JavaTestFramework
 		return null;
 	}
 
-	@Override
 	@Nullable
+    @Override
 	protected PsiMethod findOrCreateSetUpMethod(PsiClass clazz) throws IncorrectOperationException
 	{
 		String beforeClassAnnotationName = JUnitUtil.BEFORE_CLASS_ANNOTATION_NAME;
@@ -107,7 +110,7 @@ public class JUnit4Framework extends JavaTestFramework
 		return findOrCreateSetUpMethod(clazz, beforeClassAnnotationName, beforeAnnotationName);
 	}
 
-	private PsiMethod findOrCreateSetUpMethod(PsiClass clazz, String beforeClassAnnotationName, String beforeAnnotationName)
+    private PsiMethod findOrCreateSetUpMethod(PsiClass clazz, String beforeClassAnnotationName, String beforeAnnotationName)
 	{
 		PsiMethod method = findSetUpMethod(clazz);
 		if(method != null)
@@ -126,8 +129,12 @@ public class JUnit4Framework extends JavaTestFramework
 			{
 				return existingMethod;
 			}
-			int exit = ApplicationManager.getApplication().isUnitTestMode() ? Messages.OK : Messages.showOkCancelDialog("Method setUp already exist but is not annotated as @Before. Annotate?",
-					CommonBundle.getWarningTitle(), Messages.getWarningIcon());
+            int exit = Application.get().isUnitTestMode() ? Messages.OK :
+                Messages.showOkCancelDialog(
+                    "Method setUp already exist but is not annotated as @Before. Annotate?",
+                    CommonLocalize.titleWarning().get(),
+                    UIUtil.getWarningIcon()
+                );
 			if(exit == Messages.OK)
 			{
 				new AddAnnotationFix(beforeAnnotationName, existingMethod).invoke(existingMethod.getProject(), null, existingMethod.getContainingFile());
@@ -230,7 +237,7 @@ public class JUnit4Framework extends JavaTestFramework
 		final PsiMethod[] methods = clazz.getAllMethods();
 		for(PsiMethod method : methods)
 		{
-			if(method.hasModifierProperty(PsiModifier.PUBLIC) && method.hasModifierProperty(PsiModifier.STATIC) && AnnotationUtil.isAnnotated(method, "org.junit.runners.Parameterized.Parameters", 0))
+			if(method.isPublic() && method.isStatic() && AnnotationUtil.isAnnotated(method, "org.junit.runners.Parameterized.Parameters", 0))
 			{
 				//todo check return value
 				return method;

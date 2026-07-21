@@ -108,8 +108,6 @@ public class JUnit5Framework extends JavaTestFramework
 
     @Override
 	@Nullable
-    @RequiredUIAccess
-    @RequiredWriteAction
 	protected PsiMethod findOrCreateSetUpMethod(PsiClass clazz) throws IncorrectOperationException
 	{
 		PsiMethod method = findSetUpMethod(clazz);

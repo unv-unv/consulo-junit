@@ -20,13 +20,14 @@ import com.intellij.java.language.projectRoots.roots.ExternalLibraryDescriptor;
 import com.intellij.java.language.psi.*;
 import com.intellij.java.language.psi.util.PsiUtil;
 import com.intellij.java.language.testIntegration.JavaTestFramework;
+import consulo.annotation.access.RequiredWriteAction;
 import consulo.annotation.component.ExtensionImpl;
-import consulo.application.AllIcons;
 import consulo.execution.configuration.ConfigurationType;
 import consulo.fileTemplate.FileTemplateDescriptor;
 import consulo.language.psi.PsiElement;
 import consulo.language.psi.PsiManager;
 import consulo.language.util.IncorrectOperationException;
+import consulo.platform.base.icon.PlatformIconGroup;
 import consulo.ui.image.Image;
 
 import jakarta.annotation.Nonnull;
@@ -82,7 +83,7 @@ public class JUnit3Framework extends JavaTestFramework
 	@Override
 	public Image getIcon()
 	{
-		return AllIcons.RunConfigurations.Junit;
+		return PlatformIconGroup.runconfigurationsJunit();
 	}
 
     @Override
@@ -153,8 +154,9 @@ public class JUnit3Framework extends JavaTestFramework
 		return null;
 	}
 
-	@Override
+    @Override
 	@Nullable
+    @RequiredWriteAction
 	protected PsiMethod findOrCreateSetUpMethod(PsiClass clazz) throws IncorrectOperationException
 	{
 		final PsiManager manager = clazz.getManager();
@@ -166,7 +168,7 @@ public class JUnit3Framework extends JavaTestFramework
 		if(baseClass != null)
 		{
 			final PsiMethod baseMethod = baseClass.findMethodBySignature(patternMethod, false);
-			if(baseMethod != null && baseMethod.hasModifierProperty(PsiModifier.PUBLIC))
+			if(baseMethod != null && baseMethod.isPublic())
 			{
 				PsiUtil.setModifierProperty(patternMethod, PsiModifier.PROTECTED, false);
 				PsiUtil.setModifierProperty(patternMethod, PsiModifier.PUBLIC, true);
